@@ -22,4 +22,4 @@ To create a new scraping project using this template, follow these simple steps:
    ```shell
     cp -r path/to/Scraping-Project-Template/* path/to/your-new-project-repository/
    ```
-8. Now you can customize and modify your project repository for your specific project need within the organization.
+8. Now you can modify your project repository to suit the unique requirements of your project within the organization.
