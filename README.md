@@ -23,3 +23,14 @@ To create a new scraping project using this template, follow these simple steps:
     cp -r path/to/Scraping-Project-Template/* path/to/your-new-project-repository/
    ```
 8. Now you can modify your project repository to suit the unique requirements of your project within the organization.
+
+## Deployment
+
+1. Navigate to cmder or terminal and change directory to your project
+2. Build and start containers
+   ```shell
+   docker-compose --env-file ./env/.env.prod -f docker-compose-prod.yaml up --build -d --force-recreate
+   ```
+
+## Full Documentation
+https://influencersclub.atlassian.net/l/cp/JQbxxs0L
