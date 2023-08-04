@@ -1,0 +1,80 @@
+version: '3.1'
+services:
+
+  redis-scraper-name:
+    container_name: redis-scraper-name
+    image: redis:latest
+    restart: unless-stopped
+    volumes:
+      - "/docker_volume/redis-scraper-name:/data"
+    networks:
+      - influencer-club
+
+  scraper_name_scraper:
+    container_name: scraper-name-scraper
+    build:
+      context: ./scraper_app/
+      dockerfile: scraper_app/Dockerfile
+    command: "/start-app.sh"
+    environment:
+      PORT: 9977
+    ports:
+      - 9977:9977
+    env_file:
+      - env/.env.prod
+    volumes:
+      - "/docker_volume/scraper_app/share:/output"
+    networks:
+      - influencer-club
+
+  scraper_name_celery_worker:
+    container_name: scraper_name_celery_worker
+    build:
+      context: ./scraper_app/
+      dockerfile: scraper_app/celeryworker.dockerfile
+    command: celery -A app.celery_worker worker --pool=eventlet -O fair --prefetch-multiplier=1 -l INFO -E
+    env_file:
+      - env/.env.prod
+    depends_on:
+      - scraper_name_scraper
+    volumes:
+      - "/docker_volume/scraper_app/share:/output"
+    networks:
+      - influencer-club
+
+  scraper_name_celery_beat:
+    container_name: scraper_name_celery_beat
+    build:
+      context: ./scraper_app/
+      dockerfile: scraper_app/celeryworker.dockerfile
+    command: celery -A app.celery_worker beat --loglevel=info
+    env_file:
+      - env/.env.prod
+    depends_on:
+      - scraper_name_scraper
+    volumes:
+      - "/docker_volume/scraper_app/share:/output"
+    networks:
+      - influencer-club
+
+  scraper_name_flower:
+    container_name: scraper_name_flower
+    build:
+      context: ./scraper_app/
+      dockerfile: scraper_app/celeryworker.dockerfile
+    command: celery flower --port=5558
+    ports:
+      - "5558:5558"
+    env_file:
+      - env/.env.prod
+    depends_on:
+      - scraper_name_scraper
+      - scraper_name_celery_worker
+    volumes:
+      - "/docker_volume/scraper_app/share:/output"
+    networks:
+      - influencer-club
+
+networks:
+  influencer-club:
+    external: true
