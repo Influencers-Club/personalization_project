@@ -14,7 +14,7 @@ services:
     container_name: scraper-name-scraper
     build:
       context: ./scraper_app/
-      dockerfile: scraper_app/Dockerfile
+      dockerfile: Dockerfile
     command: "/start-app.sh"
     environment:
       PORT: 9977
@@ -31,7 +31,7 @@ services:
     container_name: scraper_name_celery_worker
     build:
       context: ./scraper_app/
-      dockerfile: scraper_app/celeryworker.dockerfile
+      dockerfile: celeryworker.dockerfile
     command: celery -A app.celery_worker worker --pool=eventlet -O fair --prefetch-multiplier=1 -l INFO -E
     env_file:
       - env/.env.prod
@@ -46,7 +46,7 @@ services:
     container_name: scraper_name_celery_beat
     build:
       context: ./scraper_app/
-      dockerfile: scraper_app/celeryworker.dockerfile
+      dockerfile: celeryworker.dockerfile
     command: celery -A app.celery_worker beat --loglevel=info
     env_file:
       - env/.env.prod
@@ -61,7 +61,7 @@ services:
     container_name: scraper_name_flower
     build:
       context: ./scraper_app/
-      dockerfile: scraper_app/celeryworker.dockerfile
+      dockerfile: celeryworker.dockerfile
     command: celery flower --port=5558
     ports:
       - "5558:5558"
