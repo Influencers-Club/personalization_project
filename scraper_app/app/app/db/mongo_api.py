@@ -1,9 +1,7 @@
 import os
-import random
 import time
 from pymongo import MongoClient
 from app.logger_manager import CustomLogger
-import app.utils
 
 
 def get_mongo_uri():
@@ -21,18 +19,12 @@ def get_mongo_uri():
     return mongo_uri
 
 
-def get_mongo_hosts():
-    host_1 = os.getenv("MONGODB_HOST")
-    host_2 = os.getenv("MONGODB_HOST_2")
-    host_3 = os.getenv("MONGODB_HOST_3")
-    return [host_1, host_2, host_3]
-
-
 class MongoDbApi:
 
     def __init__(self,
                  host="",
                  db="test",
+                 # ToDo change the name of the collection to your collection
                  scraper_profile="scraper_profile",
                  scraper_all="scraper_all",
                  read_preference="?readPreference=secondary&maxStalenessSeconds=120000"):
@@ -43,16 +35,6 @@ class MongoDbApi:
         self.scraper_profile = scraper_profile
         self.scraper_all = scraper_all
         self.read_preference = read_preference
-        self.ips = get_mongo_hosts()
-
-    def change_host_ip(self):
-        current_ip = self.host.split('@')[1].split(':')[0]
-        random.shuffle(self.ips)
-        for ip in self.ips:
-            if ip != current_ip:
-                self.host = self.host.split('@')[0] + '@' + ip + ':27010/'
-                self.logger.info(f"Changing mongo host ip, new host is {self.host}")
-                break
 
     def fill_db_names(self, db, collection):
         if not db:
@@ -86,12 +68,11 @@ class MongoDbApi:
         with MongoClient(host=self.host, document_class=dict) as client:
             while True:
                 try:
-                    res = client[self.db_name][self.scraper_profile].update_many(filter, {"$set": {field: value}})
+                    res = client[db][collection].update_many(filter, {"$set": {field: value}})
                     break
                 except Exception as err:
                     self.logger.error(err)
                     time.sleep(10)
-                    self.change_host_ip()
 
             return res
 
@@ -99,7 +80,7 @@ class MongoDbApi:
         db, collection = self.fill_db_names(db, collection)
         update_cnt = 0
         credentials = [x.get(column) for x in lst_data]
-        column_not_in_db, column_in_db, _id_and_column_in_db = self.find_not_in_db(
+        column_not_in_db, column_in_db, _id_and_column_in_db = self.find_in_db_and_not_in_db(
             column_values=credentials, column=column, db=db, collection=collection)
         not_in_db = [x for x in lst_data if x.get(column) in column_not_in_db]
         in_db = [x for x in lst_data if x.get(column) not in column_not_in_db]
@@ -124,9 +105,9 @@ class MongoDbApi:
                 try:
                     res = client[db][collection].find_one({column_name: column_value}, data)
                     break
-                except:
+                except Exception as err:
+                    self.logger.error(err)
                     time.sleep(10)
-                    self.change_host_ip()
             return res
 
     def find_many(self, filter={}, limit=1000, skip=0, points={}, db=None, collection=None):
@@ -135,14 +116,13 @@ class MongoDbApi:
             try:
                 users = []
                 with MongoClient(host=self.host, document_class=dict) as client:
-                    for data_ in client[self.db_name][self.scraper_profile].find(filter, points).skip(skip).limit(
+                    for data_ in client[db][collection].find(filter, points).skip(skip).limit(
                             limit):
                         users.append(data_)
                 return users
             except Exception as e:
                 self.logger.error(e)
                 time.sleep(10)
-                self.change_host_ip()
 
     def find_in_db_and_not_in_db(self, column_values=[], column="", db=None, collection=None):
         db, collection = self.fill_db_names(db, collection)
@@ -161,7 +141,6 @@ class MongoDbApi:
             except Exception as e:
                 self.logger.error(e)
                 time.sleep(10)
-                self.change_host_ip()
 
 
 mongo_api = MongoDbApi()

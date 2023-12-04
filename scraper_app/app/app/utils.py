@@ -1,6 +1,8 @@
 import codecs
 import datetime
 import logging
+import time
+
 import pandas as pd
 import requests
 from app.core.config import settings
@@ -97,10 +99,27 @@ def mongo_export_into_csv(items=None, file_path=""):
 
 
 def get_static_proxies():
-    url = settings.PROXY_MANAGEMENT_SYSTEM_URL + '/api/v1/scrapers/get_proxy_list'
-    params = {'project': 'All', 'proxy_type': 'Static'}
-    resp = requests.get(url, params=params).json()
-    return resp
+    while True:
+        try:
+            url = settings.PROXY_MANAGEMENT_SYSTEM_URL + '/api/v1/scrapers/get_proxy_list'
+            params = {'project': 'All', 'proxy_type': 'Static'}
+            resp = requests.get(url, params=params).json()
+            return resp
+        except Exception as e:
+            print(e)
+            time.sleep(3)
+
+
+def get_mobile_proxies():
+    while True:
+        try:
+            params = {'project': 'All', 'proxy_type': 'Mobile'}
+            url = settings.PROXY_MANAGEMENT_SYSTEM_URL + '/api/v1/scrapers/get_proxy_list'
+            resp = requests.get(url, params=params).json()
+            return resp
+        except Exception as e:
+            print(e)
+            time.sleep(3)
 
 
 def get_day_of_month():
@@ -116,7 +135,7 @@ def get_month_of_year():
 
 def get_current_hour():
     d = datetime.datetime.now()
-    return str((int(d.strftime("%H")) + 2) % 24)
+    return str((int(d.strftime("%H")) + 1) % 24)
 
 
 def get_current_minute():
@@ -128,5 +147,3 @@ def get_x_minute_after_now(x):
     current = int(get_current_minute())
     minutes = (current + x) % 60
     return str(minutes)
-
-
