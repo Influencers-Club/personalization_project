@@ -23,13 +23,13 @@ def main():
     return {"Result": "Sent as background task"}
 
 
-@router.post("/create-entity-no-parametars/")
-def no_parameters_task(db: Session = Depends(deps.get_db)):
+@router.post("/scrape-credentials-from-db/")
+def scrape_credentials_from_db(db: Session = Depends(deps.get_db)):
     kwargs = {}
     name = f"no--parameters--{datetime.datetime.now():%Y-%m-%d_%H:%M}"
     file_name = str(name).replace(" ", "_")
     output_file = os.path.join(settings.EXPORT_DIR, f"{file_name}.csv")
-    func = "app.celery_worker.no_parameters_task"
+    func = "app.celery_worker.scrape_credentials_from_db"
     entity = crud.scraper_entity.create(
         db=db,
         obj_in=schemas.ScraperEntityCreate(
@@ -62,8 +62,8 @@ def no_parameters_task(db: Session = Depends(deps.get_db)):
     return {"task": f"{task}"}
 
 
-@router.post("/create-entity-multiple-parametars/")
-def multiple_parameters_task(
+@router.post("/scrape-credentials-from-file/")
+def scrape_credentials_from_file(
         background_tasks: BackgroundTasks,
         db: Session = Depends(deps.get_db),
         in_file: UploadFile = File(...),
@@ -87,7 +87,7 @@ def multiple_parameters_task(
                                   scrape_tag=scrape_tag,
                                   name=name,
                                   do_export=do_export,
-                                  scrape_func="app.celery_worker.multiple_parameters_task"
+                                  scrape_func="app.celery_worker.scrape_credentials_from_file"
                                   )
 
     return {"Result": "Sent as background task"}

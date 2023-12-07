@@ -53,6 +53,12 @@ class Settings(BaseSettings):
     KAFKA_USERNAME: Optional[str] = ""
     KAFKA_PASSWORD: Optional[str] = ""
     KAFKA_SERVER: Optional[str] = ""
+    USE_KAFKA: Optional[bool] = False
+
+    ELASTIC_PASSWORD: Optional[str] = None
+    ELASTIC_USERNAME: Optional[str] = None
+    ELASTIC_INDEX: Optional[str] = None
+    ELASTIC_HOSTS: Optional[Any] = None
 
     PROXY_MANAGEMENT_SYSTEM_URL: Optional[str] = ""
 

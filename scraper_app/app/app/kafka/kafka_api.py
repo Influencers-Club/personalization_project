@@ -7,7 +7,7 @@ from app.core.config import settings
 
 class KafkaApi:
     def __init__(self, logger=None, topic=None):
-        if settings.KAFKA_USERNAME and settings.KAFKA_PASSWORD:
+        if settings.USE_KAFKA and settings.KAFKA_USERNAME and settings.KAFKA_PASSWORD:
             self.producer = Producer({'bootstrap.servers': settings.KAFKA_SERVER,
                                       'security.protocol': 'sasl_plaintext',
                                       'sasl.mechanism': 'PLAIN',
@@ -21,15 +21,16 @@ class KafkaApi:
         self.topic = topic
 
     def send_to_kafka(self, users_dict):
-        users_lst = [users_dict[x] for x in list(users_dict.keys())]
-        if self.producer:
-            for user in users_lst:
-                self.counter += 1
-                self.producer.produce(self.topic, json.dumps(user, default=str).encode('utf-8'),
-                                      callback=self.delivery_report)
-            if self.counter > 1000:
-                self.flush_messages()
-                self.counter = 0
+        if settings.USE_KAFKA:
+            users_lst = [users_dict[x] for x in list(users_dict.keys())]
+            if self.producer:
+                for user in users_lst:
+                    self.counter += 1
+                    self.producer.produce(self.topic, json.dumps(user, default=str).encode('utf-8'),
+                                          callback=self.delivery_report)
+                if self.counter > 1000:
+                    self.flush_messages()
+                    self.counter = 0
 
     def flush_messages(self):
         if self.producer:
