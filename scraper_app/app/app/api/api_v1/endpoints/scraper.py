@@ -164,3 +164,32 @@ def write_file_and_send_to_redis(db=None, in_file: Optional[File] = None, out_fi
                                           obj_in=schemas.ScraperEntityUpdate(redis_id=task.id,
                                                                              log_file=log_file))
     return {"task": f"{task}"}
+
+
+@router.post("/scrape-cross-matched/")
+def scrape_cross_matched_task():
+    kwargs = {}
+    name = f"cross--matched--{datetime.datetime.now():%Y-%m-%d_%H:%M}"
+    file_name = str(name).replace(" ", "_")
+    output_file = os.path.join(settings.EXPORT_DIR, f"{file_name}.csv")
+    func = "app.celery_worker.scrape_cross"
+    entity_id = crud.scraper_entity.create(
+        obj_in=schemas.ScraperEntityCreate(name=name,
+                                           function_kwargs=kwargs,
+                                           scrape_function=func,
+                                           stats={"total": 0, "inserted": 0, "updated": 0, "not_exist": 0,
+                                                  "in_db_not_updated": 0, 'scrape_rate': 0.0},
+                                           output_file=output_file,
+                                           do_export=False,
+                                           status=schemas.ScraperEntityStatus.pending,
+                                           mode=schemas.ScraperEntityMode.rescrape
+                                           )
+    )
+    if entity_id:
+        kwargs["entity_id"] = entity_id
+    task = celery_app.send_task(func, kwargs=kwargs)
+    log_file = os.path.join(settings.LOG_DIR, f"{entity_id}.log")
+    if task:
+        crud.scraper_entity.update_entity(entity_id=entity_id,
+                                          obj_in=schemas.ScraperEntityUpdate(redis_id=task.id, log_file=log_file))
+    return {"task": f"{task}"}

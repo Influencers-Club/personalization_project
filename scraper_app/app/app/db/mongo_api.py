@@ -142,5 +142,21 @@ class MongoDbApi:
                 self.logger.error(e)
                 time.sleep(10)
 
+    def find_users_from_cross_scraping(self, social_media="instagram", credential_name="username"):
+        list_of_user_ids = []
+        unique_ids = []
+        with MongoClient(host=self.host, document_class=dict) as client:
+            for data_ in client["scrapers"]["cross_scrapping_users"].find(
+                    {"$and": [{"scrape_try_date": None},
+                              {"social_media": social_media},
+                              {"credential_name": credential_name}
+                              ]},
+                    {"credential_value": 1, "cross_match_id": 1}).limit(30000):
+                username = data_.get("credential_value")
+                if username:
+                    list_of_user_ids.append(username)
+                    unique_ids.append(data_.get("cross_match_id"))
+        return list_of_user_ids, unique_ids
+
 
 mongo_api = MongoDbApi()

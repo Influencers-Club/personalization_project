@@ -1,3 +1,4 @@
+import time
 import eventlet
 import datetime
 import gc
@@ -92,6 +93,22 @@ def get_credentials_from_file(file_path):
         credentials = [str(x.get(first_key)) for x in list_of_ids_dict]
         return credentials
     return []
+
+
+def scrape_cross_scraping(entity_id, **kwargs):
+    object_logger = pre_task(entity_id)
+    while True:
+        credentials, cross_match_ids = mongo_api.find_users_from_cross_scraping(social_media="", credential_name="")
+        if not credentials:
+            print("Sleeping 30 min")
+            time.sleep(1800)
+            continue
+        now = datetime.datetime.now()
+        mongo_api.update_many(cross_match_ids, "cross_match_id", "scrape_try_date", now, db="scrapers",
+                              collection="cross_scrapping_users")
+        spawn_threads(object_logger, credentials=credentials, mode="usernames", entity_id=entity_id, scrape_tag="",
+                      do_export=False)
+        del credentials
 
 
 def spawn_threads(object_logger, credentials, scrape_tag, mode, entity_id, do_export, batch_number=50, pool_size=30):
