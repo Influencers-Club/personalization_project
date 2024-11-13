@@ -1,6 +1,5 @@
 # scraping-project-template
-Welcome to the Scraping Project Template repository! This template is designed to simplify and streamline the process of starting a new web scraping project within our Data Collection Department. Whether you're a seasoned scraper or just getting started with web data extraction, this template provides a solid foundation to kickstart your project and ensure consistency across our data collection initiatives.
-
+Welcome to the Personalization Project repository! T
 ## About the Template
 Web scraping is a critical aspect of our data gathering efforts, and with numerous social media platforms and websites to explore, it's essential to have a structured and organized approach. This template serves as a starting point for your scraping projects, providing essential components and best practices that we've refined through experience.
 
